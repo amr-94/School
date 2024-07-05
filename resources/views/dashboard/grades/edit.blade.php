@@ -94,8 +94,6 @@
             e.preventDefault();
 
             var formData = $('#gradeUpdateForm').serialize();
-            var gradeId = "{{ $grade->id }}";
-
             $.ajax({
                 url: "{{ route('grade.update', $grade->id) }}",
                 method: "POST",
@@ -109,15 +107,7 @@
                         $('#responseModal').modal('show');
                     }
                 },
-                error: function(xhr) {
-                    var errors = xhr.responseJSON.errors;
-                    var errorMessage = '';
-                    for (var error in errors) {
-                        errorMessage += errors[error] + '\n';
-                    }
-                    $('#responseMessage').text(errorMessage);
-                    $('#responseModal').modal('show');
-                }
+
             });
         });
     });
