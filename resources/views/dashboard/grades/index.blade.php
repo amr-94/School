@@ -48,9 +48,12 @@
                                             </tr>
                                         </thead>
                                         <tbody>
+                                            @php
+                                                $i = 1;
+                                            @endphp
                                             @foreach ($grades as $grade)
-                                                <tr>
-                                                    <td>{{ $grade->id }}</td>
+                                                <tr id="grade-{{ $grade->id }}">
+                                                    <td>{{ $i++ }}</td>
                                                     <td>{{ $grade->name }}</td>
                                                     <td>{{ $grade->notes }}</td>
                                                     <td>any process</td>
@@ -59,13 +62,8 @@
                                                     <td class="d-flex gap-2">
                                                         <a href="{{ route('grade.edit', $grade->id) }}"
                                                             class="btn btn-primary btn-sm mr-2">Edit</a>
-                                                        <form action="{{ route('grade.destroy', $grade->id) }}"
-                                                            method="post">
-                                                            @csrf
-                                                            @method('delete')
-                                                            <button type="submit"
-                                                                class="btn btn-danger btn-sm">Delete</button>
-                                                        </form>
+                                                        <button class="btn btn-danger btn-sm delete-grade"
+                                                            data-id="{{ $grade->id }}">Delete</button>
                                                     </td>
                                                 </tr>
                                             @endforeach
@@ -93,7 +91,59 @@
     </div>
 </div>
 <!-- row closed -->
+
+<!-- Modal -->
+<div class="modal fade" id="responseModal" tabindex="-1" role="dialog" aria-labelledby="responseModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="responseModalLabel">Response</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="responseMessage">
+                <!-- Response message will be inserted here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 @section('js')
+<script>
+    $(document).ready(function() {
+        // Handle delete button click
+        $('.delete-grade').click(function(e) {
+            e.preventDefault();
 
+            var gradeId = $(this).data('id');
+
+            if (confirm('Are you sure you want to delete this grade?')) {
+                $.ajax({
+                    url: "{{ route('grade.destroy', $grade->id) }}",
+                    method: "DELETE",
+                    data: {
+                        _token: "{{ csrf_token() }}"
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            $('#grade-' + gradeId).remove();
+                        }
+                        $('#responseMessage').text(response.message);
+                        $('#responseModal').modal('show');
+                    },
+                    error: function(xhr) {
+                        var errorMessage = xhr.responseJSON.message || 'An error occurred';
+                        $('#responseMessage').text(errorMessage);
+                        $('#responseModal').modal('show');
+                    }
+                });
+            }
+        });
+    });
+</script>
 @endsection

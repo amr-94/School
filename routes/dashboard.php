@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Dashboard\ClassroomController;
 use App\Http\Controllers\Dashboard\GradeController;
 use Illuminate\Support\Facades\Route;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
@@ -15,6 +16,7 @@ Route::group(
         })->name('dashboard');
 
         Route::resource('grade', GradeController::class);
+        Route::resource('classroom', ClassroomController::class);
     }
 
 );

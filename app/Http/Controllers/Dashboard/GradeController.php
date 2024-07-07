@@ -102,7 +102,18 @@ class GradeController extends Controller
      */
     public function destroy($id)
     {
-        $this->gradeRepository->delete($id);
-        return redirect()->route('grade.index')->with('success', 'Grade deleted successfully');
+        try {
+            $this->gradeRepository->delete($id);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Grade deleted successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }
