@@ -191,9 +191,30 @@
                         $('#responseMessage').text(response.message);
                         $('#responseModal').modal('show');
                         if (response.success) {
-                            setTimeout(function() {
-                                location.reload();
-                            }, 1000);
+                            // var classroomHtml = JSON.stringify(response.classroom);
+                            // alert(classroomHtml);
+                            var classroomHtml = '<tr id="classroom-' + response.classroom.id +
+                                '">';
+                            classroomHtml += '<td>' + response.classroom.name.ar + '</td>';
+                            classroomHtml += '<td>' + response.classroom.grade.name + '</td>';
+                            classroomHtml += '<td>' + response.classroom.created_at + '</td>';
+                            classroomHtml += '<td>' + response.classroom.updated_at + '</td>';
+                            classroomHtml +=
+                                '<td><button class="btn btn-primary edit-classroom" data-id="' +
+                                response.classroom.id + '">Edit</button></td>';
+                            classroomHtml +=
+                                '<td><button class="btn btn-danger delete-classroom" data-id="' +
+                                response.classroom.id + '">Delete</button></td>';
+                            classroomHtml += '</tr>';
+
+                            // Check if classroomId exists to determine if it's an update or create action
+                            if (classroomId) {
+                                $('#classroom-' + classroomId).replaceWith(
+                                    classroomHtml); // Replace existing row with updated HTML
+                            } else {
+                                $('#datatable tbody').append(
+                                    classroomHtml); // Append new row to the table body
+                            }
                         }
                     },
                     error: function(xhr) {
