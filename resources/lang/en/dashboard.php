@@ -30,4 +30,7 @@ return
         'grade_name.required' => 'Grade Name is required',
         'grade_name.exists' => 'Grade Name is not exists',
         'select_grade' => 'Select Grade',
+        'add_classroom' => 'Add Classroom',
+        'remove' => 'Remove',
+
     ];

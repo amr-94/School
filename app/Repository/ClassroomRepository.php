@@ -16,17 +16,22 @@ class ClassroomRepository implements ClassroomInterface
     public function store($request)
     {
         try {
-            $classroom = Classroom::create([
-                'name' => [
-                    'ar' => $request->name,
-                    'en' => $request->name_en,
-                ],
-                'grade_id' => $request->grade_id,
-            ]);
+            $classrooms = [];
 
-            $classroom->load('grade');
+            foreach ($request->classrooms as $classroomData) {
+                $classroom = Classroom::create([
+                    'name' => [
+                        'ar' => $classroomData['name'],
+                        'en' => $classroomData['name_en'],
+                    ],
+                    'grade_id' => $classroomData['grade_id'],
+                ]);
 
-            return response()->json(['success' => true, 'message' => 'Classroom created successfully', 'classroom' => $classroom]);
+                $classroom->load('grade');
+                $classrooms[] = $classroom;
+            }
+
+            return response()->json(['success' => true, 'message' => 'Classrooms created successfully', 'classrooms' => $classrooms]);
         } catch (Exception $e) {
             return response()->json(['success' => false, 'message' => 'An error occurred: ' . $e->getMessage()], 500);
         }
@@ -34,20 +39,30 @@ class ClassroomRepository implements ClassroomInterface
 
     public function update($request, $id)
     {
+        // $validatedData = $request->validate([
+        //     'classrooms.*.name' => 'required|string',
+        //     'classrooms.*.name_en' => 'required|string',
+        //     'classrooms.*.grade_id' => 'required|integer|exists:grades,id'
+        // ]);
         try {
-            $classroom = Classroom::findOrFail($id);
-            $classroom->update([
-                'name' => [
-                    'ar' => $request->name,
-                    'en' => $request->name_en,
-                ],
-                'grade_id' => $request->grade_id,
-            ]);
-            return response()->json([
-                'success' => true,
-                'message' => 'Classroom created successfully',
-                'classroom' => $classroom,
-            ]);
+            $classrooms = [];
+
+            foreach ($request->classrooms as $classroomData) {
+                $classroom = Classroom::findOrFail($id);
+                $classroom->update([
+                    'name' => [
+                        'ar' => $classroomData['name'],
+                        'en' => $classroomData['name_en'],
+                    ],
+                    'grade_id' => $classroomData['grade_id'],
+                ]);
+
+                $classroom->load('grade');
+                $classrooms[] = $classroom;
+            }
+
+
+            return response()->json(['success' => true, 'message' => 'Classroom updated successfully.', 'classroom' => $classroom]);
         } catch (Exception $e) {
             return response()->json(['success' => false, 'message' => 'An error occurred: ' . $e->getMessage()], 500);
         }

@@ -105,29 +105,44 @@
                     <form id="classroomForm">
                         @csrf
                         <input type="hidden" id="classroomId" name="classroomId">
-                        <div class="form-group">
-                            <label for="name">@lang('dashboard.classroom_name')</label>
-                            <input type="text" class="form-control" id="name" name="name">
+                        <input type="hidden" name="_method" value="PUT" id="formMethod">
+                        <div id="classroomRepeater">
+                            <div class="classroom-group">
+                                <div class="form-group">
+                                    <label for="name">@lang('dashboard.classroom_name')</label>
+                                    <input type="text" class="form-control" name="classrooms[0][name]"
+                                        value="{{ old('classrooms.0.name') }}">
+                                </div>
+                                <div class="form-group">
+                                    <label for="name_en">@lang('dashboard.english_classroom_name')</label>
+                                    <input type="text" class="form-control" name="classrooms[0][name_en]"
+                                        value="{{ old('classrooms.0.name_en') }}">
+                                </div>
+                                <div class="form-group">
+                                    <label for="grade_id">@lang('dashboard.grade_name')</label>
+                                    <select class="form-control" name="classrooms[0][grade_id]">
+                                        <option value="">@lang('dashboard.select_grade')</option>
+                                        @foreach ($grades as $grade)
+                                            <option value="{{ $grade->id }}"
+                                                {{ old('classrooms.0.grade_id') == $grade->id ? 'selected' : '' }}>
+                                                {{ $grade->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <button type="button" class="btn btn-danger remove-classroom">@lang('dashboard.remove')</button>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label for="name_en">@lang('dashboard.english_classroom_name')</label>
-                            <input type="text" class="form-control" id="name_en" name="name_en">
-                        </div>
-                        <div class="form-group">
-                            <label for="grade_id">@lang('dashboard.grade_name')</label>
-                            <select class="form-control" id="grade_id" name="grade_id">
-                                <option value="">@lang('dashboard.select_grade')</option>
-                                @foreach ($grades as $grade)
-                                    <option value="{{ $grade->id }}">{{ $grade->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
+                        <button type="button" class="btn btn-primary" id="addClassroomBtn">@lang('dashboard.add_classroom')</button>
                         <button type="submit" class="btn btn-primary">@lang('dashboard.create_classroom')</button>
                     </form>
                 </div>
+
             </div>
         </div>
     </div>
+
+
+
 
     <!-- Modal for Response -->
     <div class="modal fade" id="responseModal" tabindex="-1" role="dialog" aria-labelledby="responseModalLabel"
@@ -163,15 +178,15 @@
             });
 
             // Show the edit modal
-            $('.edit-classroom').click(function() {
+            $(document).on('click', '.edit-classroom', function() {
                 var classroomId = $(this).data('id');
                 $.get('/classroom/' + classroomId + '/edit', function(data) {
                     if (data.success) {
                         $('#classroomModalLabel').text("@lang('dashboard.edit_classroom')");
                         $('#classroomId').val(data.classroom.id);
-                        $('#name').val(data.classroom.name.ar);
-                        $('#name_en').val(data.classroom.name.en);
-                        $('#grade_id').val(data.classroom.grade_id);
+                        $('input[name="classrooms[0][name]"]').val(data.classroom.name.ar);
+                        $('input[name="classrooms[0][name_en]"]').val(data.classroom.name.en);
+                        $('select[name="classrooms[0][grade_id]"]').val(data.classroom.grade_id);
                         $('#classroomModal').modal('show');
                     }
                 });
@@ -183,6 +198,7 @@
                 var classroomId = $('#classroomId').val();
                 var url = classroomId ? '/classroom/' + classroomId : '{{ route('classroom.store') }}';
                 var method = classroomId ? 'PUT' : 'POST';
+
                 $.ajax({
                     url: url,
                     method: method,
@@ -191,29 +207,27 @@
                         $('#responseMessage').text(response.message);
                         $('#responseModal').modal('show');
                         if (response.success) {
-                            // var classroomHtml = JSON.stringify(response.classroom);
-                            // alert(classroomHtml);
                             var classroomHtml = '<tr id="classroom-' + response.classroom.id +
                                 '">';
+                            classroomHtml += '<td>' + response.classroom.id + '</td>';
                             classroomHtml += '<td>' + response.classroom.name.ar + '</td>';
                             classroomHtml += '<td>' + response.classroom.grade.name + '</td>';
                             classroomHtml += '<td>' + response.classroom.created_at + '</td>';
                             classroomHtml += '<td>' + response.classroom.updated_at + '</td>';
+                            classroomHtml += '<td class="d-flex gap-2">';
                             classroomHtml +=
-                                '<td><button class="btn btn-primary edit-classroom" data-id="' +
-                                response.classroom.id + '">Edit</button></td>';
+                                '<button class="btn btn-primary btn-sm edit-classroom" data-id="' +
+                                response.classroom.id + '">@lang('dashboard.edit')</button>';
                             classroomHtml +=
-                                '<td><button class="btn btn-danger delete-classroom" data-id="' +
-                                response.classroom.id + '">Delete</button></td>';
+                                '<button class="btn btn-danger btn-sm delete-classroom" data-id="' +
+                                response.classroom.id + '">@lang('dashboard.delete')</button>';
+                            classroomHtml += '</td>';
                             classroomHtml += '</tr>';
 
-                            // Check if classroomId exists to determine if it's an update or create action
                             if (classroomId) {
-                                $('#classroom-' + classroomId).replaceWith(
-                                    classroomHtml); // Replace existing row with updated HTML
+                                $('#classroom-' + classroomId).replaceWith(classroomHtml);
                             } else {
-                                $('#datatable tbody').append(
-                                    classroomHtml); // Append new row to the table body
+                                $('#datatable tbody').append(classroomHtml);
                             }
                         }
                     },
@@ -226,7 +240,7 @@
             });
 
             // Handle delete button click
-            $('.delete-classroom').click(function(e) {
+            $(document).on('click', '.delete-classroom', function(e) {
                 e.preventDefault();
                 var classroomId = $(this).data('id');
                 if (confirm('Are you sure you want to delete this classroom?')) {
@@ -251,6 +265,43 @@
                     });
                 }
             });
+        });
+        $(document).ready(function() {
+            let classroomIndex = 1;
+
+            $('#addClassroomBtn').click(function() {
+                const classroomHtml = `
+                <div class="classroom-group">
+                    <div class="form-group">
+                        <label for="name">@lang('dashboard.classroom_name')</label>
+                        <input type="text" class="form-control" name="classrooms[${classroomIndex}][name]">
+                    </div>
+                    <div class="form-group">
+                        <label for="name_en">@lang('dashboard.english_classroom_name')</label>
+                        <input type="text" class="form-control" name="classrooms[${classroomIndex}][name_en]">
+                    </div>
+                    <div class="form-group">
+                        <label for="grade_id">@lang('dashboard.grade_name')</label>
+                        <select class="form-control" name="classrooms[${classroomIndex}][grade_id]">
+                            <option value="">@lang('dashboard.select_grade')</option>
+                            @foreach ($grades as $grade)
+                                <option value="{{ $grade->id }}">{{ $grade->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <button type="button" class="btn btn-danger remove-classroom">Remove</button>
+                </div>
+            `;
+
+                $('#classroomRepeater').append(classroomHtml);
+                classroomIndex++;
+            });
+
+            $(document).on('click', '.remove-classroom', function() {
+                $(this).closest('.classroom-group').remove();
+            });
+
+            // Other existing JavaScript code...
         });
     </script>
 @endsection
