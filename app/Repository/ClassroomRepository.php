@@ -3,10 +3,11 @@
 namespace App\Repository;
 
 use App\Interfaces\ClassroomInterface;
+use App\Interfaces\GradeInterface;
 use App\Models\Classroom;
 use Exception;
 
-class ClassroomRepository implements ClassroomInterface
+class ClassroomRepository implements GradeInterface
 {
     public function index()
     {
@@ -66,6 +67,10 @@ class ClassroomRepository implements ClassroomInterface
         } catch (Exception $e) {
             return response()->json(['success' => false, 'message' => 'An error occurred: ' . $e->getMessage()], 500);
         }
+    }
+    public function edit($id)
+    {
+        return Classroom::findOrFail($id);
     }
 
     public function delete($id)
